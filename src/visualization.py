@@ -41,8 +41,9 @@ def run_visualizations(df, anomalies, feat_importance, correlations, output_dir)
     print(f"Усі графіки успішно збережено у: {os.path.abspath(output_dir)}")
 
 if __name__ == "__main__":
-    path = '../data/raw/nuclear_safety_q4_2025.xlsx'
-    visual_path = '../reports/figures'
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(BASE_DIR, 'data', 'raw', 'nuclear_safety_q4_2025.xlsx')
+    visual_path = os.path.join(BASE_DIR, 'reports', 'figures')
     raw_data = load_data(path)
 
     if raw_data is not None:

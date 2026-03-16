@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 from data_load import load_data
 
@@ -58,7 +59,8 @@ def prepare_data(df):
 
 
 if __name__ == "__main__":
-    path = '../data/raw/nuclear_safety_q4_2025.xlsx'
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(BASE_DIR, 'data', 'raw', 'nuclear_safety_q4_2025.xlsx')
     raw_data = load_data(path)
 
     if raw_data is not None:

@@ -22,7 +22,9 @@ def load_data(file_path):
 
 
 if __name__ == "__main__":
-    path = '../data/raw/nuclear_safety_q4_2025.xlsx'
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(BASE_DIR, 'data', 'raw', 'nuclear_safety_q4_2025.xlsx')
+
     raw_data = load_data(path)
     if raw_data is not None:
         print(raw_data.head(3))
