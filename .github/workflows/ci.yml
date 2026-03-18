@@ -23,12 +23,10 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      data_load: ${{ steps.filter.outputs.data_load }}
-      data_quality_analysis: ${{ steps.filter.outputs.data_quality_analysis }}
-      models: ${{ steps.filter.outputs.models }}
-      visualization: ${{ steps.filter.outputs.visualization }}
+      modules: ${{ steps.set-matrix.outputs.modules }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -38,8 +36,25 @@ jobs:
             models: 'src/models.py'
             visualization: 'src/visualization.py'
 
+      - name: Generate Matrix Config
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # Якщо запуск вручну: або всі, або конкретний
+            if [ "${{ github.event.inputs.module }}" == "all" ]; then
+              echo 'modules=["data_load", "data_quality_analysis", "models", "visualization"]' >> $GITHUB_OUTPUT
+            else
+              echo "modules=[\"${{ github.event.inputs.module }}\"]" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Якщо push/PR: беремо тільки змінені модулі
+            # filter.outputs.changes повертає JSON-масив, наприклад ["models"]
+            echo "modules=${{ steps.filter.outputs.changes }}" >> $GITHUB_OUTPUT
+          fi
+
   run-modules:
     needs: changes
+    if: ${{ needs.changes.outputs.modules != '[]' && needs.changes.outputs.modules != '' }}
     runs-on: ubuntu-latest
 
     env:
@@ -48,11 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [data_load, data_quality_analysis, models, visualization]
-
-    if: >
-      (github.event_name == 'workflow_dispatch' && (github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module)) ||
-      (github.event_name != 'workflow_dispatch' && needs.changes.outputs[matrix.module] == 'true')
+        module: ${{ fromJSON(needs.changes.outputs.modules) }}
 
     steps:
       - name: Checkout code
@@ -82,7 +93,6 @@ jobs:
           if [ "${{ matrix.module }}" == "visualization" ]; then
             echo "Копіювання графіків до артефактів"
             cp reports/figures/*.png artifacts/${{ matrix.module }}/ 2>/dev/null || echo "Графіків не знайдено"
-          
           fi
 
       - name: Run Tests
