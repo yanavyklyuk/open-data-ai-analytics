@@ -128,3 +128,51 @@ jobs:
           name: results-${{ matrix.module }}
           path: artifacts/${{ matrix.module }}/
           retention-days: 5
+
+  deploy-pages:
+    needs: run-modules
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: ./downloaded_results
+          merge-multiple: true
+
+      - name: Prepare Web Page
+        run: |
+          mkdir -p public
+          cp downloaded_results/**/*.png public/ 2>/dev/null || true
+
+          echo "<html><body style='font-family: Arial; padding: 40px; text-align: center;'>" > public/index.html
+          echo "<h1>Звіт</h1>" >> public/index.html
+          echo "<p>Updated: $(date)</p><hr>" >> public/index.html
+
+          shopt -s nullglob
+          images=(public/*.png)
+
+          if [ ${#images[@]} -eq 0 ]; then
+            echo "<p>Немає графіків</p>" >> public/index.html
+          else
+            for img in "${images[@]}"; do
+              name=$(basename "$img")
+              echo "<h3>$name</h3>" >> public/index.html
+              echo "<img src='$name' style='max-width: 800px;'><br>" >> public/index.html
+            done
+          fi
+
+          echo "</body></html>" >> public/index.html
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
