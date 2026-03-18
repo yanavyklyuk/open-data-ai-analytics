@@ -3,7 +3,7 @@ import os
 
 def load_data(file_path):
     if not os.path.exists(file_path):
-        print(f"Помилка: Файл {file_path} не знайдено!")
+        print(f"Помилка: Файл {file_path} не знайдено")
         return None
 
     ext = os.path.splitext(file_path)[-1].lower()
