@@ -133,38 +133,43 @@ jobs:
     needs: run-modules
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Artifacts
+      - name: Download All Available Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: results-visualization
-          path: ./temp_artifacts
+          pattern: results-*
+          path: ./downloaded_results
+          merge-multiple: true
+        continue-on-error: true
 
       - name: Prepare Web Page
         run: |
           mkdir -p public
           
-          find ./temp_artifacts -name "*.png" -exec cp {} public/ \;
+          # Перевіряємо, чи взагалі щось завантажилось
+          if [ -d "./downloaded_results" ]; then
+            cp downloaded_results/*.png public/ 2>/dev/null || true
+          fi
           
           echo "<html><body style='font-family: Arial; padding: 40px; text-align: center;'>" > public/index.html
           echo "<h1>Звіт з аналізу даних</h1>" >> public/index.html
           echo "<p>Оновлено: $(date)</p><hr>" >> public/index.html
           
-          cd public
-          if ls *.png 1> /dev/null 2>&1; then
-            for img in *.png; do
-              echo "<h3>$img</h3><img src='$img' style='max-width: 800px; border: 1px solid #ddd; margin-bottom: 20px;'><br>" >> index.html
+          # Перевіряємо наявність картинок перед генерацією списку
+          if ls public/*.png 1> /dev/null 2>&1; then
+            for img in public/*.png; do
+              name=$(basename "$img")
+              echo "<h3>$name</h3><img src='$name' style='max-width: 800px; border: 1px solid #ddd; margin-bottom: 20px;'><br>" >> public/index.html
             done
           else
-            echo "<h3>Помилка: Файли знайдено в артефактах, але не скопійовано</h3>" >> index.html
+            echo "<h3>Графіки поки не згенеровані. Запустіть модуль 'visualization' або 'all' вручну.</h3>" >> public/index.html
           fi
-          echo "</body></html>" >> index.html
+          echo "</body></html>" >> public/index.html
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
