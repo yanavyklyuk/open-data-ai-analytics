@@ -65,6 +65,7 @@ jobs:
               modules+=('"visualization"')
             fi
           
+            IFS=,
             json="[${modules[*]}]"
             echo "modules=$json" >> $GITHUB_OUTPUT
           fi
