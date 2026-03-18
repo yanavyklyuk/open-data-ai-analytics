@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      module:
+        description: "Оберіть модуль для запуску"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - data_load
+          - data_quality_analysis
+          - models
+          - visualization
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-matrix.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            data_load: 'src/data_load.py'
+            data_quality_analysis: 'src/data_quality_analysis.py'
+            models: 'src/models.py'
+            visualization: 'src/visualization.py'
+
+      - name: Generate Matrix Config
+        id: set-matrix
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.module }}" == "all" ]; then
+              echo 'modules=["data_load","data_quality_analysis","models","visualization"]' >> $GITHUB_OUTPUT
+            else
+              echo "modules=[\"${{ github.event.inputs.module }}\"]" >> $GITHUB_OUTPUT
+            fi
+          else
+            modules=()
+          
+            if [[ "${{ steps.filter.outputs.data_load }}" == "true" ]]; then
+              modules+=('"data_load"')
+            fi
+            if [[ "${{ steps.filter.outputs.data_quality_analysis }}" == "true" ]]; then
+              modules+=('"data_quality_analysis"')
+            fi
+            if [[ "${{ steps.filter.outputs.models }}" == "true" ]]; then
+              modules+=('"models"')
+            fi
+            if [[ "${{ steps.filter.outputs.visualization }}" == "true" ]]; then
+              modules+=('"visualization"')
+            fi
+          
+            IFS=,
+            json="[${modules[*]}]"
+            echo "modules=$json" >> $GITHUB_OUTPUT
+          fi
+
+  run-modules:
+    needs: changes
+    if: ${{ needs.changes.outputs.modules != '[]' && needs.changes.outputs.modules != '' }}
+    runs-on: ubuntu-latest
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.changes.outputs.modules) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Prepare Data Environment
+        run: |
+          mkdir -p data/raw
+          cp data/test/nuclear_safety_test.xlsx data/raw/nuclear_safety_q4_2025.xlsx
+
+      - name: Run Module Script
+        run: |
+          mkdir -p artifacts/${{ matrix.module }}
+          python src/${{ matrix.module }}.py > artifacts/${{ matrix.module }}/run.log 2>&1
+          
+          if [ "${{ matrix.module }}" == "visualization" ]; then
+            echo "Копіювання графіків до артефактів"
+            cp reports/figures/*.png artifacts/${{ matrix.module }}/ 2>/dev/null || echo "Графіків не знайдено"
+          fi
+
+      - name: Run Tests
+        run: |
+          if [ -f tests/test_${{ matrix.module }}.py ]; then
+            pytest tests/test_${{ matrix.module }}.py
+          else
+            echo "Тестів для ${{ matrix.module }} не знайдено."
+          fi
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.module }}
+          path: artifacts/${{ matrix.module }}/
+          retention-days: 5
