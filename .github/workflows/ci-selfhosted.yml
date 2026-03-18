@@ -14,6 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Link Real Data
+        run: |
+          mkdir -p data/raw
+          cp /Users/yana.vyklyuk/Documents/GitHub/open-data-ai-analytics/data/raw/nuclear_safety_q4_2025.xlsx data/raw/
+
       - name: Run Module on Self-hosted
         run: |
           mkdir -p artifacts/local_run
