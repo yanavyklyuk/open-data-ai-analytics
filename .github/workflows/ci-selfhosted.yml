@@ -1,0 +1,30 @@
+name: CI (Self-hosted)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  local-analysis:
+    runs-on: [self-hosted, macOS, X64]
+
+    env:
+      PYTHONPATH: ${{ github.workspace }}/src
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Module on Self-hosted
+        run: |
+          mkdir -p artifacts/local_run
+          echo "Запуск на локальному Mac"
+          
+          python3 src/visualization.py > artifacts/local_run/local_run.log 2>&1
+          
+          cp reports/figures/*.png artifacts/local_run/ 2>/dev/null || echo "No figures"
+
+      - name: Upload Local Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-mac-results
+          path: artifacts/local_run/
