@@ -19,6 +19,9 @@ on:
           - models
           - visualization
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -38,18 +41,32 @@ jobs:
 
       - name: Generate Matrix Config
         id: set-matrix
+        shell: bash
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            # Якщо запуск вручну: або всі, або конкретний
             if [ "${{ github.event.inputs.module }}" == "all" ]; then
-              echo 'modules=["data_load", "data_quality_analysis", "models", "visualization"]' >> $GITHUB_OUTPUT
+              echo 'modules=["data_load","data_quality_analysis","models","visualization"]' >> $GITHUB_OUTPUT
             else
               echo "modules=[\"${{ github.event.inputs.module }}\"]" >> $GITHUB_OUTPUT
             fi
           else
-            # Якщо push/PR: беремо тільки змінені модулі
-            # filter.outputs.changes повертає JSON-масив, наприклад ["models"]
-            echo "modules=${{ steps.filter.outputs.changes }}" >> $GITHUB_OUTPUT
+            modules=()
+          
+            if [[ "${{ steps.filter.outputs.data_load }}" == "true" ]]; then
+              modules+=('"data_load"')
+            fi
+            if [[ "${{ steps.filter.outputs.data_quality_analysis }}" == "true" ]]; then
+              modules+=('"data_quality_analysis"')
+            fi
+            if [[ "${{ steps.filter.outputs.models }}" == "true" ]]; then
+              modules+=('"models"')
+            fi
+            if [[ "${{ steps.filter.outputs.visualization }}" == "true" ]]; then
+              modules+=('"visualization"')
+            fi
+          
+            json="[${modules[*]}]"
+            echo "modules=$json" >> $GITHUB_OUTPUT
           fi
 
   run-modules:
