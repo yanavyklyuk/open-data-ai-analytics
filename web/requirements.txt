@@ -1,0 +1,4 @@
+pandas==3.0.2
+Pillow==12.2.0
+python-dotenv==1.2.2
+streamlit==1.56.0

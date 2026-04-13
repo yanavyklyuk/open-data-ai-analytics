@@ -1,0 +1,80 @@
+{
+    "total_rows": 115,
+    "total_columns": 14,
+    "total_missing_values": 0,
+    "duplicates": 0,
+    "columns_info": {
+        "year": {
+            "type": "int64",
+            "missing_values": 0
+        },
+        "quarter": {
+            "type": "int64",
+            "missing_values": 0
+        },
+        "station": {
+            "type": "str",
+            "missing_values": 0
+        },
+        "irg": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "irg_index": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "iodine_radionuclides": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "stable_radionuclides": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "stable_radionuclides_index": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "cs_137_emission": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "co_60_emission": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "cs_137_dump": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "volume": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "index_radioactive_releas": {
+            "type": "float64",
+            "missing_values": 0
+        },
+        "index_dump": {
+            "type": "float64",
+            "missing_values": 0
+        }
+    },
+    "unique_years": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+    ],
+    "unique_stations": [
+        "ЗАЕС",
+        "РАЕС",
+        "ПАЕС",
+        "ХАЕС"
+    ]
+}
