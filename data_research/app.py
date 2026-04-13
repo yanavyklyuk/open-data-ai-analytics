@@ -9,9 +9,12 @@ from core.db_manager import get_data_from_db
 
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, "..", ".env"))
+
 def prepare_task_datasets(df):
     numeric_features = [
-        'irg', 'irg_index', 'iodine_radionuclides', 'iodine_radionuclides_index',
+        'irg', 'irg_index', 'iodine_radionuclides',
         'stable_radionuclides', 'stable_radionuclides_index', 'cs_137_emission',
         'co_60_emission', 'cs_137_dump', 'volume'
     ]

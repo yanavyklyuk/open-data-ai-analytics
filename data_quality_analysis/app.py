@@ -8,6 +8,9 @@ from core.db_manager import get_data_from_db
 
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, "..", ".env"))
+
 def run_quality_analysis():
     df = get_data_from_db()
 

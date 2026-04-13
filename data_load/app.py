@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, "..", ".env"))
+
 def get_db_connection():
     db_path = os.getenv('DB_PATH')
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
@@ -33,7 +36,7 @@ def prepare_data(df):
         df[col] = df[col].apply(clean_val)
 
     if 'co_60_dump' in df.columns:
-        df = df.drop(columns=['co_60_dump'])
+        df = df.drop(columns=['co_60_dump', 'iodine_radionuclides_index'])
 
     df = df.dropna()
 
@@ -101,4 +104,3 @@ if __name__ == "__main__":
         clean_df = prepare_data(raw_df)
         init_db(clean_df)
         load_data_to_db(clean_df)
-        

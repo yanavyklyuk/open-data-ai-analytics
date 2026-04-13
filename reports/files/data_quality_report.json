@@ -1,6 +1,6 @@
 {
     "total_rows": 115,
-    "total_columns": 15,
+    "total_columns": 14,
     "total_missing_values": 0,
     "duplicates": 0,
     "columns_info": {
@@ -25,10 +25,6 @@
             "missing_values": 0
         },
         "iodine_radionuclides": {
-            "type": "float64",
-            "missing_values": 0
-        },
-        "iodine_radionuclides_index": {
             "type": "float64",
             "missing_values": 0
         },
