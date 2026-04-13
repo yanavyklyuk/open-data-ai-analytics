@@ -12,3 +12,6 @@ data/raw/
 *.csv
 *.zip
 *.parquet
+
+db/init/
+*.db
