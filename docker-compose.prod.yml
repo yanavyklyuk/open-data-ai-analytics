@@ -1,0 +1,104 @@
+version: "3.9"
+
+networks:
+  nuclear_network:
+    driver: bridge
+
+services:
+  data_load:
+    build:
+      context: .
+      dockerfile: data_load/Dockerfile
+    container_name: nuclear_data_load
+    environment:
+      DB_PATH: /app/db/init/nuclear_safety.db
+      RAW_DATA_PATH: /app/data/raw/nuclear_safety_q4_2025.xlsx
+      TABLE_NAME: nuclear_safety_reports
+    volumes:
+      - ./db:/app/db
+      - ./data:/app/data
+    networks:
+      - nuclear_network
+    restart: on-failure
+
+  data_quality:
+    build:
+      context: .
+      dockerfile: data_quality_analysis/Dockerfile
+    container_name: nuclear_quality
+    depends_on:
+      data_load:
+        condition: service_completed_successfully
+    environment:
+      DB_PATH: /app/db/init/nuclear_safety.db
+      REPORTS_PATH: /app/reports/files/
+    volumes:
+      - ./db:/app/db
+      - ./reports:/app/reports
+    networks:
+      - nuclear_network
+    restart: on-failure
+
+  data_research:
+    build:
+      context: .
+      dockerfile: data_research/Dockerfile
+    container_name: nuclear_research
+    depends_on:
+      data_load:
+        condition: service_completed_successfully
+    environment:
+      DB_PATH: /app/db/init/nuclear_safety.db
+      REPORTS_PATH: /app/reports/files/
+    volumes:
+      - ./db:/app/db
+      - ./reports:/app/reports
+    networks:
+      - nuclear_network
+    restart: on-failure
+
+  visualization:
+    build:
+      context: .
+      dockerfile: visualization/Dockerfile
+    container_name: nuclear_visualization
+    depends_on:
+      data_research:
+        condition: service_completed_successfully
+    environment:
+      DB_PATH: /app/db/init/nuclear_safety.db
+      REPORTS_PATH: /app/reports/files/
+      FIGURES_DIR: /app/reports/figures/
+    volumes:
+      - ./db:/app/db
+      - ./reports:/app/reports
+    networks:
+      - nuclear_network
+    restart: on-failure
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    container_name: nuclear_web
+    ports:
+      - "8501:8501"
+    depends_on:
+      data_quality:
+        condition: service_completed_successfully
+      visualization:
+        condition: service_completed_successfully
+    environment:
+      REPORTS_PATH: /app/reports/files/
+      FIGURES_DIR: /app/reports/figures/
+    volumes:
+      - ./reports:/app/reports
+    networks:
+      - nuclear_network
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8501/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
