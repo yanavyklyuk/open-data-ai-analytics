@@ -1,0 +1,23 @@
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - docker.io
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+
+  - usermod -aG docker azureuser
+
+  - apt-get update
+  - apt-get install -y docker-compose-plugin
+
+  - mkdir -p /home/azureuser/app
+
+  - git clone https://github.com/yanavyklyuk/open-data-ai-analytics.git /home/azureuser/app
+
+  - chown -R azureuser:azureuser /home/azureuser/app
+
+  - docker compose -f /home/azureuser/app/docker-compose.yml up -d
