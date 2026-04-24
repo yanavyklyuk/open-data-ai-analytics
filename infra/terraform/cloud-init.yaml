@@ -5,7 +5,6 @@ package_upgrade: true
 packages:
   - git
   - docker.io
-  - docker-compose
 
 runcmd:
   - systemctl enable docker
@@ -13,10 +12,13 @@ runcmd:
 
   - usermod -aG docker azureuser
 
+  - curl -L "https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
+
   - mkdir -p /home/azureuser/app
 
   - git clone https://github.com/yanavyklyuk/open-data-ai-analytics.git /home/azureuser/app
 
   - chown -R azureuser:azureuser /home/azureuser/app
 
-  - docker-compose -f /home/azureuser/app/docker-compose.yml up -d
+  - docker compose -f /home/azureuser/app/docker-compose.yml up -d
