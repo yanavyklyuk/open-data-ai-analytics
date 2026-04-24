@@ -25,7 +25,8 @@ resource "azurerm_public_ip" "pip" {
   name                = "nuclear-security-ip"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_security_group" "nsg" {
@@ -80,7 +81,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s"
+  size                = "Standard_B2s"
   admin_username      = "azureuser"
   network_interface_ids = [azurerm_network_interface.nic.id]
 
