@@ -112,3 +112,54 @@ docker compose down -v
 ### Мережі та Порти
 * **Мережа:** `nuclear_network` (bridge) — забезпечує ізоляцію сервісів.
 * **Порт:** `8501` — порт веб-інтерфейсу Streamlit, прокинутий на хостову машину.
+
+---
+
+## Розгортання в хмарі (Azure + Terraform)
+
+Цей розділ описує процес автоматизованого створення інфраструктури та запуску проєкту в Microsoft Azure.
+
+### 1. Підготовка та відкриття Cloud Shell
+1. Увійдіть у [Azure Portal](https://portal.azure.com).
+2. Натисніть іконку **Cloud Shell** (`>_`) у верхній панелі керування.
+3. Оберіть середовище **Bash**.
+4. Згенеруйте SSH-ключі (якщо не робили цього раніше), щоб Terraform міг передати їх на віртуальну машину:
+   ```bash
+   ssh-keygen -t rsa -b 4096
+   ```
+
+### 2. Запуск інфраструктури (Terraform Apply)
+1. Склонуйте репозиторій та перейдіть у папку з конфігурацією:
+   ```bash
+   git clone https://github.com/yanavyklyuk/open-data-ai-analytics.git
+   cd open-data-ai-analytics/infra/terraform
+   ```
+2. Виконайте ініціалізацію, форматування, валідацію та розгортання:
+   ```bash
+   terraform init
+   terraform fmt
+   terraform validate
+   terraform apply -auto-approve
+   ```
+3. Після завершення Terraform виведе `public_ip_address`. Скопіюйте цю адресу.
+
+### 3. Перевірка результатів
+Після виконання `apply` віртуальній машині потрібно **8–10 хвилин** для завершення внутрішнього налаштування (first boot configuration): оновлення системи, створення Swap-файлу та запуску Docker-контейнерів.
+
+* **Веб-інтерфейс**: Відкрийте у браузері `http://<ВАШ_IP>:8501`.
+* **Консольна перевірка**: 
+    Підключіться до VM через SSH:
+    ```bash
+    ssh azureuser@<ВАШ_IP>
+    ```
+    Перевірте статус контейнерів:
+    ```bash
+    docker ps
+    ```
+    Ви маєте побачити 5 запущених сервісів: `nuclear_web`, `visualization`, `research`, `quality` та `data_load`.
+
+### 4. Видалення ресурсів (Terraform Destroy)
+Щоб уникнути зайвих витрат коштів на студентському рахунку Azure, після завершення роботи обов’язково видаліть інфраструктуру:
+```bash
+terraform destroy -auto-approve
+```
