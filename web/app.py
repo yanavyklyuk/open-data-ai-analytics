@@ -5,6 +5,10 @@ import pandas as pd
 from PIL import Image
 
 from dotenv import load_dotenv
+from prometheus_client import start_http_server, Counter, Gauge
+
+PAGE_VIEWS = Counter('app_page_views_total', 'Загальна кількість переглядів сторінок', ['page_name'])
+ANOMALIES_GAUGE = Gauge('app_detected_anomalies_count', 'Кількість виявлених аномалій у звіті')
 
 load_dotenv()
 
@@ -26,11 +30,18 @@ def load_json(filename):
     return None
 
 def main():
+    try:
+        start_http_server(8000)
+    except:
+        pass
+
     st.set_page_config(page_title="Моніторинг АЕС", layout="wide")
 
     st.sidebar.title("Навігація")
     page = st.sidebar.radio("Оберіть розділ:",
                             ["Головна", "Аналіз якості даних", "Результати дослідження", "Візуалізація"])
+
+    PAGE_VIEWS.labels(page_name=page).inc()
 
     if page == "Головна":
         st.title("🛡️ Аналіз екологічної обстановки АЕС України")
@@ -56,6 +67,7 @@ def main():
         report = load_json('data_quality_report.json')
 
         if report:
+            ANOMALIES_GAUGE.set(report.get('duplicates', 0))
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("Загалом записів", report['total_rows'])
             col2.metric("Загалом ознак", report['total_columns'])

@@ -22,3 +22,5 @@ runcmd:
   - chown -R azureuser:azureuser /home/azureuser/app
 
   - /usr/local/bin/docker-compose -f /home/azureuser/app/docker-compose.yml up -d
+
+  - /usr/local/bin/docker-compose -f /home/azureuser/app/monitoring/docker-compose.monitoring.yml up -d

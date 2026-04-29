@@ -3,3 +3,5 @@ Pillow==12.2.0
 python-dotenv==1.2.2
 streamlit==1.56.0
 matplotlib==3.10.8
+ipython==9.10.0
+prometheus-client==0.21.1
