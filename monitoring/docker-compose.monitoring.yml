@@ -48,7 +48,7 @@ services:
       - app_nuclear_network
 
 networks:
-  app-network:
+  app_nuclear_network:
     external: true
 
 volumes:
