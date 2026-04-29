@@ -10,7 +10,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - app-network
+      - app_nuclear_network
 
   grafana:
     image: grafana/grafana:latest
@@ -20,7 +20,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     networks:
-      - app-network
+      - app_nuclear_network
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -34,7 +34,7 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
     networks:
-      - app-network
+      - app_nuclear_network
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -45,7 +45,7 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - app-network
+      - app_nuclear_network
 
 networks:
   app-network:

@@ -7,9 +7,6 @@ from PIL import Image
 from dotenv import load_dotenv
 from prometheus_client import start_http_server, Counter, Gauge
 
-PAGE_VIEWS = Counter('app_page_views_total', 'Загальна кількість переглядів сторінок', ['page_name'])
-ANOMALIES_GAUGE = Gauge('app_detected_anomalies_count', 'Кількість виявлених аномалій у звіті')
-
 load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +25,21 @@ def load_json(filename):
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
     return None
+
+
+@st.cache_resource
+def init_metrics():
+    try:
+        start_http_server(8000)
+    except Exception:
+        pass
+
+    page_views = Counter('app_page_views_total', 'Загальна кількість переглядів сторінок', ['page_name'])
+    anomalies_gauge = Gauge('app_detected_anomalies_count', 'Кількість виявлених аномалій у звіті')
+
+    return page_views, anomalies_gauge
+
+PAGE_VIEWS, ANOMALIES_GAUGE = init_metrics()
 
 def main():
     try:
