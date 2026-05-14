@@ -18,61 +18,59 @@ spec:
       initContainers:
       - name: data-load
         image: yanavyklyuk/nuclear-data-load:latest
-        env:
-        - name: DB_PATH
-          value: "/app/db/init/nuclear_safety.db"
-        - name: RAW_DATA_PATH
-          value: "/app/data/raw/nuclear_safety_q4_2025.xlsx"
-        - name: TABLE_NAME
-          value: "nuclear_safety_reports"
+        envFrom:
+        - configMapRef:
+            name: nuclear-config
         volumeMounts:
-        - name: data-storage
-          mountPath: /app
+        - name: shared-db
+          mountPath: /app/db
+        - name: shared-data
+          mountPath: /app/data
       - name: data-quality
         image: yanavyklyuk/nuclear-quality:latest
-        env:
-        - name: DB_PATH
-          value: "/app/db/init/nuclear_safety.db"
-        - name: REPORTS_PATH
-          value: "/app/reports/files/"
+        envFrom:
+        - configMapRef:
+            name: nuclear-config
         volumeMounts:
-        - name: data-storage
-          mountPath: /app
+        - name: shared-db
+          mountPath: /app/db
+        - name: shared-reports
+          mountPath: /app/reports
       - name: data-research
         image: yanavyklyuk/nuclear-research:latest
-        env:
-        - name: DB_PATH
-          value: "/app/db/init/nuclear_safety.db"
-        - name: REPORTS_PATH
-          value: "/app/reports/files/"
+        envFrom:
+        - configMapRef:
+            name: nuclear-config
         volumeMounts:
-        - name: data-storage
-          mountPath: /app
+        - name: shared-db
+          mountPath: /app/db
+        - name: shared-reports
+          mountPath: /app/reports
       - name: visualization
         image: yanavyklyuk/nuclear-visualization:latest
-        env:
-        - name: DB_PATH
-          value: "/app/db/init/nuclear_safety.db"
-        - name: REPORTS_PATH
-          value: "/app/reports/files/"
-        - name: FIGURES_DIR
-          value: "/app/reports/figures/"
+        envFrom:
+        - configMapRef:
+            name: nuclear-config
         volumeMounts:
-        - name: data-storage
-          mountPath: /app
+        - name: shared-db
+          mountPath: /app/db
+        - name: shared-reports
+          mountPath: /app/reports
       containers:
       - name: web-app
         image: yanavyklyuk/nuclear-web:latest
         ports:
         - containerPort: 8501
-        env:
-        - name: REPORTS_PATH
-          value: "/app/reports/files/"
-        - name: FIGURES_DIR
-          value: "/app/reports/figures/"
+        envFrom:
+        - configMapRef:
+            name: nuclear-config
         volumeMounts:
-        - name: data-storage
-          mountPath: /app
+        - name: shared-reports
+          mountPath: /app/reports
       volumes:
-      - name: data-storage
+      - name: shared-db
+        emptyDir: {}
+      - name: shared-data
+        emptyDir: {}
+      - name: shared-reports
         emptyDir: {}
