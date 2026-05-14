@@ -7,8 +7,14 @@ spec:
   selector:
     app: nuclear-security
   ports:
-    - protocol: TCP
+    - name: web
+      protocol: TCP
       port: 8501
       targetPort: 8501
       nodePort: 30501
+    - name: metrics
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30800
   type: NodePort

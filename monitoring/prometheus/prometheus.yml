@@ -17,4 +17,4 @@ scrape_configs:
 
   - job_name: 'aes-app'
     static_configs:
-      - targets: ['web:8000']
+      - targets: ['10.0.2.4:30800']
