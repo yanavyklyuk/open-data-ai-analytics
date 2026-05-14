@@ -23,9 +23,7 @@ spec:
             name: nuclear-config
         volumeMounts:
         - name: shared-db
-          mountPath: /app/db
-        - name: shared-data
-          mountPath: /app/data
+          mountPath: /app/db/init
       - name: data-quality
         image: yanavyklyuk/nuclear-quality:latest
         envFrom:
@@ -33,7 +31,7 @@ spec:
             name: nuclear-config
         volumeMounts:
         - name: shared-db
-          mountPath: /app/db
+          mountPath: /app/db/init
         - name: shared-reports
           mountPath: /app/reports
       - name: data-research
@@ -43,7 +41,7 @@ spec:
             name: nuclear-config
         volumeMounts:
         - name: shared-db
-          mountPath: /app/db
+          mountPath: /app/db/init
         - name: shared-reports
           mountPath: /app/reports
       - name: visualization
@@ -53,7 +51,7 @@ spec:
             name: nuclear-config
         volumeMounts:
         - name: shared-db
-          mountPath: /app/db
+          mountPath: /app/db/init
         - name: shared-reports
           mountPath: /app/reports
       containers:
@@ -69,8 +67,6 @@ spec:
           mountPath: /app/reports
       volumes:
       - name: shared-db
-        emptyDir: {}
-      - name: shared-data
         emptyDir: {}
       - name: shared-reports
         emptyDir: {}
