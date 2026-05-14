@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nuclear-web-service
+  namespace: nuclear-app
+spec:
+  selector:
+    app: nuclear-security
+  ports:
+    - protocol: TCP
+      port: 8501
+      targetPort: 8501
+      nodePort: 30501
+  type: NodePort

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nuclear-analytics
+  namespace: nuclear-app
+  labels:
+    app: nuclear-security
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nuclear-security
+  template:
+    metadata:
+      labels:
+        app: nuclear-security
+    spec:
+      initContainers:
+      - name: data-load
+        image: yanavyklyuk/nuclear-data-load:latest
+        env:
+        - name: DB_PATH
+          value: "/app/db/init/nuclear_safety.db"
+        - name: RAW_DATA_PATH
+          value: "/app/data/raw/nuclear_safety_q4_2025.xlsx"
+        - name: TABLE_NAME
+          value: "nuclear_safety_reports"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app
+      - name: data-quality
+        image: yanavyklyuk/nuclear-quality:latest
+        env:
+        - name: DB_PATH
+          value: "/app/db/init/nuclear_safety.db"
+        - name: REPORTS_PATH
+          value: "/app/reports/files/"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app
+      - name: data-research
+        image: yanavyklyuk/nuclear-research:latest
+        env:
+        - name: DB_PATH
+          value: "/app/db/init/nuclear_safety.db"
+        - name: REPORTS_PATH
+          value: "/app/reports/files/"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app
+      - name: visualization
+        image: yanavyklyuk/nuclear-visualization:latest
+        env:
+        - name: DB_PATH
+          value: "/app/db/init/nuclear_safety.db"
+        - name: REPORTS_PATH
+          value: "/app/reports/files/"
+        - name: FIGURES_DIR
+          value: "/app/reports/figures/"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app
+      containers:
+      - name: web-app
+        image: yanavyklyuk/nuclear-web:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: REPORTS_PATH
+          value: "/app/reports/files/"
+        - name: FIGURES_DIR
+          value: "/app/reports/figures/"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app
+      volumes:
+      - name: data-storage
+        emptyDir: {}

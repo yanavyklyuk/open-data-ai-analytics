@@ -3,24 +3,44 @@ package_update: true
 package_upgrade: true
 
 packages:
+  - curl
   - git
-  - docker.io
+  - apt-transport-https
+  - ca-certificates
 
 runcmd:
-  - curl -L "https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  - chmod +x /usr/local/bin/docker-compose
+  - curl -sfL https://get.k3s.io | sh -
+  - systemctl enable k3s
+  - systemctl start k3s
 
-  - systemctl enable docker
-  - systemctl start docker
+  - until kubectl get nodes | grep -q "Ready"; do sleep 5; done
 
-  - usermod -aG docker azureuser
+  - kubectl create namespace argocd
 
-  - mkdir -p /home/azureuser/app
+  - kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-  - git clone https://github.com/yanavyklyuk/open-data-ai-analytics.git /home/azureuser/app
+  - until kubectl get pods -n argocd | grep "argocd-server" | grep -q "Running"; do sleep 10; done
 
-  - chown -R azureuser:azureuser /home/azureuser/app
+  - |
+    cat <<EOF > /etc/systemd/system/argocd-portforward.service
+    [Unit]
+    Description=Argo CD Port Forward
+    After=k3s.service
+    Wants=k3s.service
 
-  - /usr/local/bin/docker-compose -f /home/azureuser/app/docker-compose.yml up -d
+    [Service]
+    ExecStart=/usr/local/bin/kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0
+    Restart=always
+    RestartSec=10
 
-  - /usr/local/bin/docker-compose -f /home/azureuser/app/monitoring/docker-compose.monitoring.yml up -d
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  - systemctl daemon-reload
+  - systemctl enable argocd-portforward
+  - systemctl start argocd-portforward
+
+  - until kubectl -n argocd get secret argocd-initial-admin-secret &>/dev/null; do sleep 5; done
+  - kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d > /home/azureuser/argocd-password.txt
+  - echo "" >> /home/azureuser/argocd-password.txt
+  - chown azureuser:azureuser /home/azureuser/argocd-password.txt
