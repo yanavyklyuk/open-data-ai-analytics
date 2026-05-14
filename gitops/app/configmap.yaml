@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nuclear-config
+  namespace: nuclear-app
+data:
+  DB_PATH: "/app/db/init/nuclear_safety.db"
+  RAW_DATA_PATH: "/app/data/raw/nuclear_safety_q4_2025.xlsx"
+  TABLE_NAME: "nuclear_safety_reports"
+  REPORTS_PATH: "/app/reports/files/"
+  FIGURES_DIR: "/app/reports/figures/"

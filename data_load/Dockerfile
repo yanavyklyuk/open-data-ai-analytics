@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY data_load/ .
 
+COPY data/raw/nuclear_safety_q4_2025.xlsx ./data/raw/
+
 RUN mkdir -p /app/data/raw /app/db/init
 
 CMD ["python", "app.py"]
